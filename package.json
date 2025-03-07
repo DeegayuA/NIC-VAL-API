@@ -1,0 +1,26 @@
+{
+  "name": "nic-val-api",
+  "version": "1.0.0",
+  "description": "This project extracts data from Sri Lankan National Identity Card (NIC) numbers and fetches IP information.",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeegayuA/NIC-VAL-API.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DeegayuA/NIC-VAL-API/issues"
+  },
+  "homepage": "https://github.com/DeegayuA/NIC-VAL-API#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "node-fetch": "^2.7.0"
+  }
+}
