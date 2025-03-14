@@ -155,7 +155,7 @@ function extractNewNICData(nic) {
             votingEligibility: votingEligibility,
             serialNumber: serialNumber,
             checkDigit: checkDigit,
-            age: age,
+            age: age // Add age to the output
         }
     };
 }
@@ -192,7 +192,7 @@ function getBirthDate(year, dayOfYear) {
 }
 
 function calculateAge(birthDay) {
-    // Ensure the birthDay is in DDMMYYYY format
+    // Extract day, month, and year from the birth date string in DDMMYYYY format
     const day = parseInt(birthDay.substring(0, 2), 10);
     const month = parseInt(birthDay.substring(2, 4), 10) - 1; // Months are 0-indexed
     const year = parseInt(birthDay.substring(4, 8), 10);
