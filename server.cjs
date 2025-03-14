@@ -1,5 +1,5 @@
 const express = require('express');
-const fetch = require('node-fetch'); 
+const fetch = require('node-fetch');
 const cors = require('cors');
 
 const app = express();
@@ -9,7 +9,6 @@ const expectedNicVal = 'NIC-VAL';
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors());
-
 
 app.get('/test-url', async (req, res) => {
     const { id, nicVal, ip } = req.query;
@@ -74,38 +73,27 @@ function extractOldNICData(nic) {
     if (isFemale) {
         birthDayOfYear -= 500;
     }
-    const gender = isFemale ? 'Female' : 'Male';
-    const birthDay = getBirthDate(birthYear, birthDayOfYear);
 
-    return {
-        NIC: {
-            valid: true,
-            formatted: formattedNIC,
-            birthYear: birthYear,
-            birthDayOfYear: String(birthDayOfYear).padStart(3, '0'),
-            birthDay: birthDay,
-            gender: gender,
-            votingEligibility: votingEligibility,
-            serialNumber: serialNumber,
-            checkDigit: checkDigit
-        }
-    };
-}
-
-function extractNewNICData(nic) {
-    const birthYear = nic.substring(0, 4);
-    let birthDayOfYear = parseInt(nic.substring(4, 7));
-    const serialNumber = nic.substring(7, 11);
-    const checkDigit = nic.substring(11);
-    const votingEligibility = 'Unknown';
-
-    const isFemale = birthDayOfYear > 500;
-
-    if (isFemale) {
-        birthDayOfYear -= 500;
+    // Validate the day of the year for old NICs (valid range 1-366, no 367-499 or 867-999)
+    if (birthDayOfYear < 1 || birthDayOfYear > 366 || (birthDayOfYear > 499 && birthDayOfYear < 867)) {
+        return { error: "Invalid day of year" };
     }
+
     const gender = isFemale ? 'Female' : 'Male';
     const birthDay = getBirthDate(birthYear, birthDayOfYear);
+
+    // Ensure birthdate is before today's date
+    if (new Date(birthDay) >= new Date()) {
+        return { error: "Birthdate cannot be today or in the future" };
+    }
+
+    // Calculate age
+    const age = calculateAge(birthDay);
+
+    // Validate age to be at least 15 years old
+    if (age < 15) {
+        return { error: "Person must be at least 15 years old" };
+    }
 
     return {
         NIC: {
@@ -117,7 +105,57 @@ function extractNewNICData(nic) {
             gender: gender,
             votingEligibility: votingEligibility,
             serialNumber: serialNumber,
-            checkDigit: checkDigit
+            checkDigit: checkDigit,
+            age: age,
+        }
+    };
+}
+
+function extractNewNICData(nic) {
+    const birthYear = nic.substring(0, 4);
+    let birthDayOfYear = parseInt(nic.substring(4, 7));
+    const serialNumber = nic.substring(7, 11);
+    const checkDigit = nic.substring(11);
+    const votingEligibility = 'Unknown';
+
+    // Validate the day of the year for new NICs (valid range 1-366, no 367-499 or 867-999)
+    if (birthDayOfYear < 1 || birthDayOfYear > 366 || (birthDayOfYear > 499 && birthDayOfYear < 867)) {
+        return { error: "Invalid day of year" };
+    }
+
+    const isFemale = birthDayOfYear > 500;
+
+    if (isFemale) {
+        birthDayOfYear -= 500;
+    }
+    const gender = isFemale ? 'Female' : 'Male';
+    const birthDay = getBirthDate(birthYear, birthDayOfYear);
+
+    // Ensure birthdate is before today's date
+    if (new Date(birthDay) >= new Date()) {
+        return { error: "Birthdate cannot be today or in the future" };
+    }
+
+    // Calculate age
+    const age = calculateAge(birthDay);
+
+    // Validate age to be at least 15 years old
+    if (age < 15) {
+        return { error: "Person must be at least 15 years old" };
+    }
+
+    return {
+        NIC: {
+            valid: true,
+            formatted: nic,
+            birthYear: birthYear,
+            birthDayOfYear: String(birthDayOfYear).padStart(3, '0'),
+            birthDay: birthDay,
+            gender: gender,
+            votingEligibility: votingEligibility,
+            serialNumber: serialNumber,
+            checkDigit: checkDigit,
+            age: age,
         }
     };
 }
@@ -153,9 +191,30 @@ function getBirthDate(year, dayOfYear) {
     return `${String(day).padStart(2, '0')}${String(monthNumber).padStart(2, '0')}${year}`;
 }
 
+function calculateAge(birthDay) {
+    // Ensure the birthDay is in DDMMYYYY format
+    const day = parseInt(birthDay.substring(0, 2), 10);
+    const month = parseInt(birthDay.substring(2, 4), 10) - 1; // Months are 0-indexed
+    const year = parseInt(birthDay.substring(4, 8), 10);
+
+    // Create a Date object from the parsed values
+    const birthDate = new Date(year, month, day);
+    const currentDate = new Date();
+
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const monthDifference = currentDate.getMonth() - birthDate.getMonth();
+
+    // Adjust age if the birthday hasn't occurred yet this year
+    if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    return age;
+}
+
 async function fetchIPInfo(ip = null) {
     try {
-        let url = `https://ipinfo.io${ip ? `/${ip}` : ''}?token=${ipinfoToken}`;
+        let url = "https://ipinfo.io" + (ip ? "/" + ip : "") + "?token=" + ipinfoToken;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -183,6 +242,7 @@ async function fetchIPInfo(ip = null) {
         throw new Error('Failed to fetch IP information');
     }
 }
+
 // Start the server
 const port = 3001;
 app.listen(port, () => {

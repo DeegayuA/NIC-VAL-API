@@ -38,6 +38,7 @@
         
             // Construct the URL for API request
             let url = `https://nic-val-api.onrender.com/test-url?id=${nicInput}&nicVal=${nicValInput}`;
+            // let url = `http://localhost:3001/test-url?id=${nicInput}&nicVal=${nicValInput}`;
             if (userIp) {
                 url += `&ip=${userIp}`;
             }
@@ -65,6 +66,7 @@
                 nicDataContainer.innerHTML = `<p class="error">Error: ${error.message}</p>`;
             }
         }
+       
         async function getUserIp() {
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
@@ -92,6 +94,7 @@
                     <p><strong>Voting Eligibility:</strong> ${combinedData.NIC.votingEligibility}</p>
                     <p><strong>Serial Number:</strong> ${combinedData.NIC.serialNumber}</p>
                     <p><strong>Check Digit:</strong> ${combinedData.NIC.checkDigit}</p>
+                    <p><strong>Age:</strong> ${combinedData.NIC.age}</p>
                 `;
             } else {
                 nicDataContainer.innerHTML = '<p class="error">Invalid NIC Number</p>';
