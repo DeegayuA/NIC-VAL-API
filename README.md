@@ -10,11 +10,60 @@ This project extracts data from Sri Lankan National Identity Card (NIC) numbers 
 -   Displays combined NIC and IP information.
 -   **Basic API Authentication (NIC-VAL)**
 
-## Usage
+## How to Use
 
-1.  Enter a valid NIC number in the input field.
-2.  Click the "Extract Data" button.
-3.  The extracted NIC data and IP information will be displayed below.
+To fetch NIC data and related information, follow these steps:
+
+1. **Make a GET request to the API**:
+   - Use the following URL format to fetch the data:
+   
+   ```
+   https://nic-val-api.onrender.com/test-url?id=<NIC_NUMBER>&nicVal=<NIC_VAL>
+   ```
+   
+   Replace `<NIC_NUMBER>` with the NIC you want to validate and `<NIC_VAL>` with the authentication value (e.g., `NIC-VAL`).
+
+2. **Example Request**:
+   - URL to fetch NIC details:
+   
+   ```
+   https://nic-val-api.onrender.com/test-url?id=911042754V&nicVal=NIC-VAL
+   ```
+
+3. **Response**:
+   - The response will return a JSON object with the NIC data and associated IP information. An example response would look like:
+   
+   ```json
+   {
+     "NIC": {
+       "valid": true,
+       "formatted": "911042754V",
+       "birthYear": "1991",
+       "birthDayOfYear": "042",
+       "birthDay": "04021991",
+       "gender": "Male",
+       "votingEligibility": "Eligible",
+       "serialNumber": "754",
+       "checkDigit": "V",
+       "age": "00300401"
+     },
+     "IP": {
+       "ip": "124.43.79.210",
+       "city": "Colombo",
+       "region": "Western Province",
+       "country": "LK",
+       "location": {
+         "latitude": "6.9355",
+         "longitude": "79.8487"
+       },
+       "organization": "AS9329 Sri Lanka Telecom Internet"
+     }
+   }
+   ```
+
+4. **Authentication**:
+   - The API performs a simple authentication check using a hardcoded `NIC-VAL` value. Replace the `nicVal` parameter in the URL with the correct authentication token.
+   - For demonstration purposes only. In a production environment, use a secure authentication method.
 
 ## NIC Format
 
