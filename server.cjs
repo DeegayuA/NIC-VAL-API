@@ -69,13 +69,14 @@ function extractOldNICData(nic) {
     const serialNumber = formattedNIC.substring(5, 8);
     const checkDigit = formattedNIC.charAt(8);
     const votingEligibility = formattedNIC.charAt(9) === 'V';
-    const isFemale = birthDayOfYear > 500;
+    const isFemale = birthDayOfYear >= 500;
+    
     if (isFemale) {
-        birthDayOfYear -= 500;
+        birthDayOfYear -= 500; // Adjust for females
     }
 
-    // Validate the day of the year for old NICs (valid range 1-366, no 367-499 or 867-999)
-    if (birthDayOfYear < 1 || birthDayOfYear > 366 || (birthDayOfYear > 499 && birthDayOfYear < 867)) {
+    // Validate the day of the year for old NICs (valid range 0-366 for males, 500-866 for females)
+    if ((birthDayOfYear < 0 || birthDayOfYear > 366) && (birthDayOfYear < 500 || birthDayOfYear > 866)) {
         return { error: "Invalid day of year" };
     }
 
@@ -118,16 +119,16 @@ function extractNewNICData(nic) {
     const checkDigit = nic.substring(11);
     const votingEligibility = 'Unknown';
 
-    // Validate the day of the year for new NICs (valid range 1-366, no 367-499 or 867-999)
-    if (birthDayOfYear < 1 || birthDayOfYear > 366 || (birthDayOfYear > 499 && birthDayOfYear < 867)) {
+    const isFemale = birthDayOfYear >= 500;
+    if (isFemale) {
+        birthDayOfYear -= 500; // Adjust for females
+    }
+
+    // Validate the day of the year for new NICs (valid range 0-366 for males, 500-866 for females)
+    if ((birthDayOfYear < 0 || birthDayOfYear > 366) && (birthDayOfYear < 500 || birthDayOfYear > 866)) {
         return { error: "Invalid day of year" };
     }
 
-    const isFemale = birthDayOfYear > 500;
-
-    if (isFemale) {
-        birthDayOfYear -= 500;
-    }
     const gender = isFemale ? 'Female' : 'Male';
     const birthDay = getBirthDate(birthYear, birthDayOfYear);
 
@@ -155,7 +156,7 @@ function extractNewNICData(nic) {
             votingEligibility: votingEligibility,
             serialNumber: serialNumber,
             checkDigit: checkDigit,
-            age: age // Add age to the output
+            age: age
         }
     };
 }
@@ -163,7 +164,7 @@ function extractNewNICData(nic) {
 function getBirthDate(year, dayOfYear) {
     let d_array = [
         { month: 'January', days: 31 },
-        { month: 'February', days: 29 },
+        { month: 'February', days: 29 }, // Assume every year has 29 days in February
         { month: 'March', days: 31 },
         { month: 'April', days: 30 },
         { month: 'May', days: 31 },
